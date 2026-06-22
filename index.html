@@ -101,14 +101,14 @@
 
     <div class="key-notice">
       <strong>🔑 One-time setup: Add your free Gemini API key</strong>
-      Get your FREE key at <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--accent);font-weight:500">openrouter.ai/keys</a> — Sign up with Google, completely free, no credit card required.
+      Get your FREE key at <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent);font-weight:500">console.groq.com/keys</a> — Sign up with Google, completely free, no credit card required.
     </div>
 
     <div class="card">
       <div class="field">
-        <label>OpenRouter API Key (Free)</label>
-        <input id="api-key" type="password" placeholder="sk-or-v1-..." />
-        <p class="hint">Free key from openrouter.ai — no card needed. Your key stays in browser only.</p>
+        <label>Groq API Key (Free)</label>
+        <input id="api-key" type="password" placeholder="gsk_..." />
+        <p class="hint">Free key from console.groq.com — no card needed. Your key stays in browser only.</p>
       </div>
     </div>
 
@@ -287,18 +287,16 @@ renderTags(TOPICS.default);
 // ── Gemini API call ──────────────────────────────────────────
 async function callAI(systemPrompt, messages, maxTokens=450){
   const key = session.key;
-  const url = "https://openrouter.ai/api/v1/chat/completions";
+  const url = "https://api.groq.com/openai/v1/chat/completions";
   const msgs = [{role:"system", content:systemPrompt}, ...messages];
   const res = await fetch(url, {
     method:"POST",
     headers:{
       "Content-Type":"application/json",
-      "Authorization":"Bearer "+key,
-      "HTTP-Referer":"https://sweta001-interview.github.io",
-      "X-Title":"PrepAI Interview"
+      "Authorization":"Bearer "+key
     },
     body: JSON.stringify({
-      model:"meta-llama/llama-3.1-8b-instruct",
+      model:"llama-3.1-8b-instant",
       messages: msgs.length ? msgs : [{role:"user",content:"Begin."}],
       max_tokens: maxTokens,
       temperature: 0.7
