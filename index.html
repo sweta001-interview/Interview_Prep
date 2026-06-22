@@ -291,7 +291,7 @@ async function callAI(systemPrompt, messages, maxTokens=450){
   const msgs = [{role:"system", content:systemPrompt}, ...messages];
   
   // Keep only last 10 messages to avoid token limit
-  const recentMsgs = msgs.slice(-10);
+  const recentMsgs = msgs.slice(-6);
   
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
@@ -404,8 +404,13 @@ async function ask(type="normal"){
     waiting=true;
     startTTimer();
   }catch(e){
-    updateLastBubble("Error: "+e.message+". Please check your API key and try again.");
+    console.error("API Error:", e);
+    updateLastBubble("⚠️ Could not get next question. Retrying in 3 seconds...");
     loading=false;
+    waiting=false;
+    setTimeout(async()=>{
+      if(qCount<=totalQ) await ask();
+    }, 3000);
   }
 }
 
@@ -516,6 +521,7 @@ async function submitVoice(){
   tb.textContent="Your speech will appear here as you speak...";tb.className="transcript";
   finalText="";
   addBubble("user",ans);history.push({role:"user",content:ans});
+  loading=false;
   await(qCount>=totalQ||secLeft<30?ask("closing"):ask());
 }
 
