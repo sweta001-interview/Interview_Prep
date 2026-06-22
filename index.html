@@ -289,22 +289,37 @@ async function callAI(systemPrompt, messages, maxTokens=450){
   const key = session.key;
   const url = "https://api.groq.com/openai/v1/chat/completions";
   const msgs = [{role:"system", content:systemPrompt}, ...messages];
-  const res = await fetch(url, {
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "Authorization":"Bearer "+key
-    },
-    body: JSON.stringify({
-      model:"llama-3.1-8b-instant",
-      messages: msgs.length ? msgs : [{role:"user",content:"Begin."}],
-      max_tokens: maxTokens,
-      temperature: 0.7
-    })
-  });
-  const data = await res.json();
-  if(data.error) throw new Error(data.error.message||JSON.stringify(data.error));
-  return data.choices?.[0]?.message?.content || "Let us continue.";
+  
+  // Keep only last 10 messages to avoid token limit
+  const recentMsgs = msgs.slice(-10);
+  
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  
+  try {
+    const res = await fetch(url, {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer "+key
+      },
+      body: JSON.stringify({
+        model:"llama-3.1-8b-instant",
+        messages: recentMsgs.length ? recentMsgs : [{role:"user",content:"Begin."}],
+        max_tokens: maxTokens,
+        temperature: 0.7
+      }),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    const data = await res.json();
+    if(data.error) throw new Error(data.error.message||JSON.stringify(data.error));
+    return data.choices?.[0]?.message?.content || "Let us continue.";
+  } catch(e) {
+    clearTimeout(timeout);
+    if(e.name === "AbortError") throw new Error("Request timed out. Please check your internet and try again.");
+    throw e;
+  }
 }
 
 async function callGemini(systemPrompt, messages){
