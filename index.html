@@ -298,7 +298,7 @@ async function callAI(systemPrompt, messages, maxTokens=450){
       "X-Title":"PrepAI Interview"
     },
     body: JSON.stringify({
-      model:"meta-llama/llama-3.1-8b-instruct:free",
+      model:"meta-llama/llama-3.1-8b-instruct",
       messages: msgs.length ? msgs : [{role:"user",content:"Begin."}],
       max_tokens: maxTokens,
       temperature: 0.7
