@@ -101,14 +101,14 @@
 
     <div class="key-notice">
       <strong>🔑 One-time setup: Add your free Gemini API key</strong>
-      Get your FREE key (no card needed) at <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--accent);font-weight:500">aistudio.google.com/app/apikey</a> — completely free, no credit card required.
+      Get your FREE key at <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--accent);font-weight:500">openrouter.ai/keys</a> — Sign up with Google, completely free, no credit card required.
     </div>
 
     <div class="card">
       <div class="field">
-        <label>Gemini API Key (Free)</label>
-        <input id="api-key" type="password" placeholder="AIzaSy..." />
-        <p class="hint">Your key stays in your browser only. Never sent anywhere else.</p>
+        <label>OpenRouter API Key (Free)</label>
+        <input id="api-key" type="password" placeholder="sk-or-v1-..." />
+        <p class="hint">Free key from openrouter.ai — no card needed. Your key stays in browser only.</p>
       </div>
     </div>
 
@@ -285,45 +285,37 @@ function addCustomTopic(){
 renderTags(TOPICS.default);
 
 // ── Gemini API call ──────────────────────────────────────────
-async function callGemini(systemPrompt, messages){
+async function callAI(systemPrompt, messages, maxTokens=450){
   const key = session.key;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${key}`;
-
-  // Build contents array for Gemini
-  const contents = messages.map(m => ({
-    role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }]
-  }));
-
-  // Prepend system instruction as first user turn if no history yet
-  const body = {
-    system_instruction: { parts: [{ text: systemPrompt }] },
-    contents: contents.length ? contents : [{ role:"user", parts:[{text:"Begin."}] }],
-    generationConfig: { maxOutputTokens: 450, temperature: 0.7 }
-  };
-
+  const url = "https://openrouter.ai/api/v1/chat/completions";
+  const msgs = [{role:"system", content:systemPrompt}, ...messages];
   const res = await fetch(url, {
     method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify(body)
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":"Bearer "+key,
+      "HTTP-Referer":"https://sweta001-interview.github.io",
+      "X-Title":"PrepAI Interview"
+    },
+    body: JSON.stringify({
+      model:"meta-llama/llama-3.1-8b-instruct:free",
+      messages: msgs.length ? msgs : [{role:"user",content:"Begin."}],
+      max_tokens: maxTokens,
+      temperature: 0.7
+    })
   });
   const data = await res.json();
-  if(data.error) throw new Error(data.error.message);
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || "Let us continue.";
+  if(data.error) throw new Error(data.error.message||JSON.stringify(data.error));
+  return data.choices?.[0]?.message?.content || "Let us continue.";
+}
+
+async function callGemini(systemPrompt, messages){
+  return callAI(systemPrompt, messages, 450);
 }
 
 async function callGeminiCoach(transcript){
-  const key = session.key;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${key}`;
-  const body = {
-    contents:[{role:"user",parts:[{text:transcript}]}],
-    system_instruction:{parts:[{text:"You are an expert interview coach for placement interviews. Analyze this transcript and give structured feedback in 3 clear sections:\n1. What went well (2-3 specific points)\n2. Key areas to improve (2-3 specific points with examples)\n3. Tips for next time (2-3 actionable tips)\nBe encouraging but honest. Keep total under 350 words."}]},
-    generationConfig:{maxOutputTokens:700,temperature:0.7}
-  };
-  const res = await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-  const data = await res.json();
-  if(data.error) throw new Error(data.error.message);
-  return data.candidates?.[0]?.content?.parts?.[0]?.text||"";
+  const coachPrompt = "You are an expert interview coach for placement interviews. Analyze this transcript and give structured feedback in 3 clear sections:\n1. What went well (2-3 specific points)\n2. Key areas to improve (2-3 specific points with examples)\n3. Tips for next time (2-3 actionable tips)\nBe encouraging but honest. Keep total under 350 words.";
+  return callAI(coachPrompt, [{role:"user", content:transcript}], 700);
 }
 // ─────────────────────────────────────────────────────────────
 
