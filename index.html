@@ -554,12 +554,30 @@ async function endInterview(){
 
 function addBubble(role,text,isLoad=false){
   const area=document.getElementById("chat-area");
+  // For AI loading bubbles, reuse existing thinking bubble if present
+  if(role==="ai" && isLoad){
+    const existing=document.getElementById("thinking-bubble");
+    if(existing){ existing.innerHTML='<span style="color:var(--hint)">Thinking...</span>'; area.scrollTop=area.scrollHeight; return; }
+    const d=document.createElement("div");
+    d.className="bubble-wrap";
+    d.innerHTML=`<div class="bubble-label">Interviewer</div><div class="bubble ai" id="thinking-bubble"><span style="color:var(--hint)">Thinking...</span></div>`;
+    area.appendChild(d);area.scrollTop=area.scrollHeight;
+    return;
+  }
   const d=document.createElement("div");
   d.className="bubble-wrap";
-  d.innerHTML=`<div class="bubble-label">${role==="ai"?"Interviewer":"You"}</div><div class="bubble ${role}" id="last-${role}">${isLoad?'<span style="color:var(--hint)">Thinking...</span>':esc(text)}</div>`;
+  d.innerHTML=`<div class="bubble-label">${role==="ai"?"Interviewer":"You"}</div><div class="bubble ${role}" id="last-${role}">${esc(text)}</div>`;
   area.appendChild(d);area.scrollTop=area.scrollHeight;
 }
 function updateLastBubble(text){
+  // Replace thinking bubble with actual content
+  const thinking=document.getElementById("thinking-bubble");
+  if(thinking){
+    thinking.id="last-ai";
+    thinking.innerHTML=fmt(text);
+    document.getElementById("chat-area").scrollTop=9999;
+    return;
+  }
   const el=document.getElementById("last-ai");
   if(el){el.innerHTML=fmt(text);document.getElementById("chat-area").scrollTop=9999;}
 }
