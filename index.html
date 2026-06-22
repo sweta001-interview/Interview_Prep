@@ -405,9 +405,9 @@ function startTTimer(){
       clearInterval(tInterval);
       if(!responding&&waiting){
         stopRec();
-        addBubble("ai","Let's move on to the next question.");
-        history.push({role:"assistant",content:"[Candidate did not respond. Moving on.]"});
-        setTimeout(()=>ask(),900);
+        waiting=false;
+        history.push({role:"user",content:"[Candidate did not respond in time. Moving on.]"});
+        setTimeout(()=>ask(),500);
       }
     }
   },1000);
