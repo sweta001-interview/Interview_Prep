@@ -287,7 +287,7 @@ renderTags(TOPICS.default);
 // ── Gemini API call ──────────────────────────────────────────
 async function callGemini(systemPrompt, messages){
   const key = session.key;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${key}`;
 
   // Build contents array for Gemini
   const contents = messages.map(m => ({
@@ -314,7 +314,7 @@ async function callGemini(systemPrompt, messages){
 
 async function callGeminiCoach(transcript){
   const key = session.key;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${key}`;
   const body = {
     contents:[{role:"user",parts:[{text:transcript}]}],
     system_instruction:{parts:[{text:"You are an expert interview coach for placement interviews. Analyze this transcript and give structured feedback in 3 clear sections:\n1. What went well (2-3 specific points)\n2. Key areas to improve (2-3 specific points with examples)\n3. Tips for next time (2-3 actionable tips)\nBe encouraging but honest. Keep total under 350 words."}]},
